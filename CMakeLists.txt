@@ -1,20 +1,28 @@
+cmake_minimum_required(VERSION 3.16)
+
 project(vartypes)
-cmake_minimum_required(VERSION 2.4)
 
-find_package ( Qt4 REQUIRED )
+set(CMAKE_PREFIX_PATH "/Users/gaoshenghan/Qt/6.9.0/macos")
 
-include ( ${QT_USE_FILE} )
+# 找 Qt6 的 Widgets 模块
+find_package(Qt6 COMPONENTS Widgets REQUIRED)
 
-
-include_directories(${src_dir}/vartypes)
-include_directories(${src_dir}/vartypes/primitives)
-include_directories(${src_dir}/vartypes/enhanced)
-include_directories(${src_dir}/vartypes/gui)
-include_directories(${src_dir}/vartypes/xml)
+# 开启自动 moc、rcc、uic
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
 
 set(src_dir .)
 
-set (SRCS
+include_directories(
+  ${src_dir}/vartypes
+  ${src_dir}/vartypes/primitives
+  ${src_dir}/vartypes/enhanced
+  ${src_dir}/vartypes/gui
+  ${src_dir}/vartypes/xml
+)
+
+set(SRCS
   ${src_dir}/vartypes/VarBase64.cpp
   ${src_dir}/vartypes/VarNotifier.cpp
   ${src_dir}/vartypes/VarTypes.cpp
@@ -55,14 +63,45 @@ set (SRCS
   ${src_dir}/vartypes/primitives/VarAny.cpp
 )
 
-include_directories(${src_dir}/vartypes)
-include_directories(${src_dir}/vartypes/primitives)
-include_directories(${src_dir}/vartypes/gui)
-include_directories(${src_dir}/vartypes/xml)
+set(RC
+  ${src_dir}/vartypes/gui/icons/icons.qrc
+)
 
+# 不用 qt4_wrap_cpp，开启 CMAKE_AUTOMOC 会自动处理所有需要 moc 的头文件
 
-#only ones that need to be moc'ed
-set (HEADERS
+# Qt6 的资源用 Qt6::rcc 自动处理
+# 你需要在 add_library 里加入资源文件，CMake 会自动调用 rcc
+
+# Debug/Release 编译选项
+set(CMAKE_CXX_FLAGS_DEBUG "-g")
+set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -march=native")
+
+# Qt6 库
+set(libs Qt6::Widgets)
+
+# 安装路径
+set(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output directory for libraries")
+set(CMAKE_INSTALL_INCLUDEDIR include CACHE PATH "Output directory for header files")
+set(CMAKE_INSTALL_DOCDIR share/doc CACHE PATH "Output directory for documentation and license files")
+
+# 生成动态库
+add_library(vartypes SHARED ${SRCS} ${RC})
+set_target_properties(vartypes PROPERTIES VERSION 0.8.0 SOVERSION 1)
+
+target_link_libraries(vartypes PRIVATE ${libs})
+
+# Example 可执行文件
+set(example_dir example)
+
+add_executable(vartype_example
+  ${example_dir}/src/mainwindow.cpp
+  ${example_dir}/src/example.cpp
+)
+
+target_link_libraries(vartype_example PRIVATE ${libs} vartypes)
+
+# 安装规则
+install(FILES
   ${src_dir}/vartypes/primitives/VarType.h
   ${src_dir}/vartypes/primitives/VarBlob.h
   ${src_dir}/vartypes/primitives/VarBool.h
@@ -80,86 +119,14 @@ set (HEADERS
   ${src_dir}/vartypes/gui/VarTreeModel.h
   ${src_dir}/vartypes/gui/VarTreeView.h
   ${src_dir}/vartypes/VarNotifier.h
-)
+  DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vartypes)
 
-set (INSTALLABLE_HEADERS
-  ${HEADERS}
-  ${src_dir}/vartypes/VarTypesLoaderInterface.h
-  ${src_dir}/vartypes/VarTypes.h
-  ${src_dir}/vartypes/VarTypesFactory.h
-  ${src_dir}/vartypes/gui/VarTreeViewOptions.h
-  ${src_dir}/vartypes/xml/xmlParser.h
-  ${src_dir}/vartypes/primitives/VarVal.h
-  ${src_dir}/vartypes/primitives/VarStringVal.h
-  ${src_dir}/vartypes/primitives/VarIntVal.h
-  ${src_dir}/vartypes/primitives/VarDoubleVal.h
-  ${src_dir}/vartypes/primitives/VarBoolVal.h
-  ${src_dir}/vartypes/VarXML.h
-  ${src_dir}/vartypes/VarTypesInstance.h
-  ${src_dir}/vartypes/VarBase64.h
-  ${src_dir}/vartypes/primitives/VarProtoBufferVal.h
-  ${src_dir}/vartypes/primitives/VarProtoBuffer.h
-  ${src_dir}/vartypes/primitives/VarAnyVal.h
-  ${src_dir}/vartypes/primitives/VarAny.h
-)
-
-set (INSTALLABLE_DOCFILES
+install(FILES
   ${src_dir}/README
   ${src_dir}/COPYING
+  DESTINATION ${CMAKE_INSTALL_DOCDIR}/vartypes
 )
 
-set (INSTALLABLE_EXAMPLE
-  ${src_dir}/README
-  ${src_dir}/COPYING
-)
-
-
-set (RC
-  ${src_dir}/vartypes/gui/icons/icons.qrc
-)
-
-qt4_wrap_cpp (MOC_SRCS
-  ${HEADERS}
-)
-
-qt4_add_resources(RC_SRCS 
-  ${RC}
-)
-
-#flags to set in debug mode
-set (CMAKE_CXX_FLAGS_DEBUG "-g")
-
-#flags to set in release mode
-set (CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -march=native")
-
-set (libs ${QT_LIBRARIES})
-
-
-SET(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output directory for libraries")
-SET(CMAKE_INSTALL_INCLUDEDIR include CACHE PATH "Output directory for header files")
-SET(CMAKE_INSTALL_DOCDIR share/doc CACHE PATH "Output directory for documentation and license files")
-
-set (target vartypes)
-add_library(${target} SHARED ${MOC_SRCS} ${SRCS} ${RC_SRCS})
-set_target_properties(${target} PROPERTIES VERSION 0.8.0 SOVERSION 1)
-target_link_libraries(${target} ${libs})
-
-set (example_target vartype_example)
-set (example_dir example)
-qt4_wrap_cpp (EXAMPLE_MOC_SRCS ${example_dir}/src/mainwindow.h)
-
-add_executable(${example_target}
-               ${EXAMPLE_MOC_SRCS}
-               ${example_dir}/src/mainwindow.cpp
-               ${example_dir}/src/example.cpp)
-               
-target_link_libraries(${example_target} ${libs} ${target})
-
-INSTALL(FILES ${INSTALLABLE_HEADERS} DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vartypes)
-
-INSTALL(FILES ${INSTALLABLE_DOCFILES} DESTINATION ${CMAKE_INSTALL_DOCDIR}/vartypes)
-
-INSTALL(TARGETS ${target}
+install(TARGETS vartypes
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
-
