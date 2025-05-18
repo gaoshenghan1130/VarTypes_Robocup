@@ -7,7 +7,7 @@ set(CMAKE_PREFIX_PATH "/Users/gaoshenghan/Qt/6.9.0/macos")
 # 找 Qt6 的 Widgets 模块
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
 # 用现代 CMake 风格查找 Boost
-find_package(Boost 1.88 REQUIRED COMPONENTS serialization CONFIG)
+find_package(Boost 1.88 REQUIRED COMPONENTS serialization)
 
 
 
@@ -74,9 +74,6 @@ set(RC
 
 # 不用 qt4_wrap_cpp，开启 CMAKE_AUTOMOC 会自动处理所有需要 moc 的头文件
 
-# Qt6 的资源用 Qt6::rcc 自动处理
-# 你需要在 add_library 里加入资源文件，CMake 会自动调用 rcc
-
 # Debug/Release 编译选项
 set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -march=native")
@@ -84,27 +81,21 @@ set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -march=native")
 # Qt6 库
 set(libs Qt6::Widgets)
 
-# 安装路径
-set(CMAKE_INSTALL_LIBDIR lib CACHE PATH "Output directory for libraries")
-set(CMAKE_INSTALL_INCLUDEDIR include CACHE PATH "Output directory for header files")
-set(CMAKE_INSTALL_DOCDIR share/doc CACHE PATH "Output directory for documentation and license files")
+# 安装到项目目录下的 install 文件夹
+set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
+set(CMAKE_INSTALL_INCLUDEDIR "include")
+set(CMAKE_INSTALL_LIBDIR "lib")
+set(CMAKE_INSTALL_DOCDIR "doc")
 
 # 生成动态库
 add_library(vartypes SHARED ${SRCS} ${RC})
 set_target_properties(vartypes PROPERTIES VERSION 0.8.0 SOVERSION 1)
 
 target_link_libraries(vartypes PRIVATE ${libs} Boost::serialization)
+target_include_directories(vartypes PRIVATE ${Boost_INCLUDE_DIRS})
 message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
+message(STATUS "Boost libraries: ${Boost_LIBRARIES}")
 
-# Example 可执行文件
-set(example_dir example)
-
-add_executable(vartype_example
-  ${example_dir}/src/mainwindow.cpp
-  ${example_dir}/src/example.cpp
-)
-
-target_link_libraries(vartype_example PRIVATE ${libs} vartypes)
 
 # 安装规则
 install(FILES
@@ -128,7 +119,7 @@ install(FILES
   DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/vartypes)
 
 install(FILES
-  ${src_dir}/README
+  ${src_dir}/README.md
   ${src_dir}/COPYING
   DESTINATION ${CMAKE_INSTALL_DOCDIR}/vartypes
 )
@@ -136,3 +127,6 @@ install(FILES
 install(TARGETS vartypes
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
+
+message(STATUS "Include dir: ${CMAKE_INSTALL_INCLUDEDIR}")
+message(STATUS "Install prefix: ${CMAKE_INSTALL_PREFIX}")
