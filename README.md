@@ -13,3 +13,13 @@ Robocup 的 grSim 仿真需要的包，十分古老，已经不再维护了。�
 - std:: 改为 std
 - setMargin(1); 改为 setContentsMargins(1, 1, 1, 1);
 
+# 编译方法
+
+```bash
+mkdir build && cd build
+cmake ..
+make
+# 安装
+make install # 会安装到项目内部
+```
+
