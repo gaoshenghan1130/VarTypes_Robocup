@@ -6,6 +6,11 @@ set(CMAKE_PREFIX_PATH "/Users/gaoshenghan/Qt/6.9.0/macos")
 
 # 找 Qt6 的 Widgets 模块
 find_package(Qt6 COMPONENTS Widgets REQUIRED)
+# 用现代 CMake 风格查找 Boost
+find_package(Boost 1.88 REQUIRED COMPONENTS serialization CONFIG)
+
+
+
 
 # 开启自动 moc、rcc、uic
 set(CMAKE_AUTOMOC ON)
@@ -88,7 +93,8 @@ set(CMAKE_INSTALL_DOCDIR share/doc CACHE PATH "Output directory for documentatio
 add_library(vartypes SHARED ${SRCS} ${RC})
 set_target_properties(vartypes PROPERTIES VERSION 0.8.0 SOVERSION 1)
 
-target_link_libraries(vartypes PRIVATE ${libs})
+target_link_libraries(vartypes PRIVATE ${libs} Boost::serialization)
+message(STATUS "Boost include dir: ${Boost_INCLUDE_DIRS}")
 
 # Example 可执行文件
 set(example_dir example)
