@@ -10,7 +10,7 @@ Robocup 的 grSim 仿真需要的包，十分古老，已经不再维护了。�
 - QT4 改为 QT6
 - CMakeLists.txt 适配现代编译器和 QT6
 - `<trl/memory>` 头文件改为 `<memory>`
-- std:: 改为 std
+- std::trl 改为 std
 - setMargin(1); 改为 setContentsMargins(1, 1, 1, 1);
 
 # 编译方法
