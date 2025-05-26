@@ -2,15 +2,17 @@ cmake_minimum_required(VERSION 3.16)
 
 project(vartypes)
 
-set(CMAKE_PREFIX_PATH "/Users/gaoshenghan/Qt/6.9.0/macos")
+set(CMAKE_PREFIX_PATH "C:/Qt/5.15.2/msvc2019_64/lib/cmake")
 
-# 找 Qt6 的 Widgets 模块
-find_package(Qt6 COMPONENTS Widgets REQUIRED)
+# 找 Qt5 的 Widgets 模块
+find_package(Qt5 COMPONENTS Widgets REQUIRED)
 # 用现代 CMake 风格查找 Boost
-find_package(Boost 1.88 REQUIRED COMPONENTS serialization)
-
-
-
+if (APPLE)
+    find_package(Boost 1.88 REQUIRED COMPONENTS serialization)
+elseif(WIN32)
+ include("C:/Users/gaoshenghan/Desktop/vcpkg/scripts/buildsystems/vcpkg.cmake")
+    find_package(Boost 1.88 REQUIRED COMPONENTS serialization)
+endif()
 
 # 开启自动 moc、rcc、uic
 set(CMAKE_AUTOMOC ON)
@@ -79,7 +81,7 @@ set(CMAKE_CXX_FLAGS_DEBUG "-g")
 set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG -O3 -march=native")
 
 # Qt6 库
-set(libs Qt6::Widgets)
+set(libs Qt5::Widgets)
 
 # 安装到项目目录下的 install 文件夹
 set(CMAKE_INSTALL_PREFIX "${CMAKE_SOURCE_DIR}/install")
